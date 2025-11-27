@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String
+  password  String
+  role      String     @default("user") // user, admin
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  bookings TransportBooking[]
+  orders   RentalOrder[]
+
+  @@map("users")
+}
+
+// Business/Portfolio Company
+model Business {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String
+  fullDescription String?
+  sector      String   // Technology, Wellness, Engineering, Mobility
+  logo        String?
+  image       String?
+  stats       String?  // JSON stringified
+  features    String?  // JSON stringified
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("businesses")
+}
+
+// Transport Route
+model TransportRoute {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  origin      String
+  destination String
+  distance    Float
+  duration    String
+  price       Float
+  description String?
+  schedule    String?    // JSON stringified
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  bookings TransportBooking[]
+
+  @@map("transport_routes")
+}
+
+// Transport Booking
+model TransportBooking {
+  id            String   @id @default(cuid())
+  userId        String
+  routeId       String
+  passengerName String
+  passengerEmail String
+  passengerPhone String
+  date          DateTime
+  quantity      Int
+  totalPrice    Float
+  status        String   @default("pending") // pending, confirmed, cancelled
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  route  TransportRoute  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@map("transport_bookings")
+}
+
+// Rental Item
+model RentalItem {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  category    String
+  price       Float
+  image       String?
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders RentalOrder[]
+
+  @@map("rental_items")
+}
+
+// Rental Order
+model RentalOrder {
+  id          String   @id @default(cuid())
+  userId      String
+  itemId      String
+  customerName String
+  customerEmail String
+  customerPhone String
+  startDate   DateTime
+  endDate     DateTime
+  totalPrice  Float
+  status      String   @default("pending") // pending, confirmed, completed, cancelled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item   RentalItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("rental_orders")
+}
+
+// Contact Message
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  subject   String
+  message   String
+  status    String   @default("unread") // unread, read, responded
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_messages")
+}
+
+// Payment (stub for future integration)
+model Payment {
+  id            String   @id @default(cuid())
+  transactionId String   @unique
+  amount        Float
+  currency      String   @default("USD")
+  status        String   @default("pending") // pending, completed, failed
+  type          String   // transport_booking, rental_order
+  referenceId   String   // booking or order ID
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("payments")
+}

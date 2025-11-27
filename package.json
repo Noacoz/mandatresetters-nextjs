@@ -1,0 +1,31 @@
+{
+  "name": "mandatresetters-nextjs",
+  "version": "1.0.0",
+  "description": "Mandatresetters Holdings - Complete Next.js 14 Application",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.8.0",
+    "axios": "^1.6.5",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "next": "^14.0.0",
+    "prisma": "^5.8.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.7",
+    "eslint": "^8.50.0",
+    "eslint-config-next": "^14.0.0"
+  }
+}
