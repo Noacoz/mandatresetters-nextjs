@@ -92,18 +92,57 @@ export default function AdminDashboard() {
 
           <section className="section">
             <div className="section-header">
-              <h2>Quick Actions</h2>
-              <p>Common admin tasks</p>
+              <h2>Admin Modules</h2>
+              <p>Manage all system data</p>
             </div>
-            <div className="grid grid-3">
-              <a href="/admin/messages" className="btn btn-primary">
-                <i className="fas fa-envelope"></i> View All Messages
+            <div className="grid grid-4">
+              <a href="/users" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+                <div>
+                  <i className="fas fa-users" style={{ display: 'block', fontSize: '24px', marginBottom: '8px' }}></i>
+                  <span>Users</span>
+                </div>
               </a>
-              <a href="/admin/users" className="btn btn-primary">
-                <i className="fas fa-users"></i> Manage Users
+              <a href="/routes" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+                <div>
+                  <i className="fas fa-map" style={{ display: 'block', fontSize: '24px', marginBottom: '8px' }}></i>
+                  <span>Routes</span>
+                </div>
               </a>
-              <a href="/admin/businesses" className="btn btn-primary">
-                <i className="fas fa-building"></i> Manage Businesses
+              <a href="/bookings" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+                <div>
+                  <i className="fas fa-ticket-alt" style={{ display: 'block', fontSize: '24px', marginBottom: '8px' }}></i>
+                  <span>Bookings</span>
+                </div>
+              </a>
+              <a href="/rentals" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+                <div>
+                  <i className="fas fa-box" style={{ display: 'block', fontSize: '24px', marginBottom: '8px' }}></i>
+                  <span>Rentals</span>
+                </div>
+              </a>
+              <a href="/orders" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+                <div>
+                  <i className="fas fa-shopping-cart" style={{ display: 'block', fontSize: '24px', marginBottom: '8px' }}></i>
+                  <span>Orders</span>
+                </div>
+              </a>
+              <a href="/payments" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+                <div>
+                  <i className="fas fa-credit-card" style={{ display: 'block', fontSize: '24px', marginBottom: '8px' }}></i>
+                  <span>Payments</span>
+                </div>
+              </a>
+              <a href="/reviews" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+                <div>
+                  <i className="fas fa-star" style={{ display: 'block', fontSize: '24px', marginBottom: '8px' }}></i>
+                  <span>Reviews</span>
+                </div>
+              </a>
+              <a href="/messages" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
+                <div>
+                  <i className="fas fa-envelope" style={{ display: 'block', fontSize: '24px', marginBottom: '8px' }}></i>
+                  <span>Messages</span>
+                </div>
               </a>
             </div>
           </section>
