@@ -6,48 +6,100 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    email: 'admin@example.com',
-    password: 'Admin@123456',
-  });
+  const [step, setStep] = useState('email'); // email, verify
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [timer, setTimer] = useState(0);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
+  // Request verification code
+  const handleRequestCode = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/request-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Login failed');
+        setError(data.error || 'Failed to send code');
         return;
       }
 
-      // Store token in localStorage
+      setSuccess('Verification code sent to your email!');
+      setStep('verify');
+      setTimer(600); // 10 minutes
+    } catch (err) {
+      console.error('Request code error:', err);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify code and login
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Invalid code');
+        return;
+      }
+
+      // Store token
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
 
       // Redirect to dashboard
       router.push('/admin/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
-      setError('An error occurred during login');
+      console.error('Verify error:', err);
+      setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Timer effect
+  React.useEffect(() => {
+    if (timer <= 0) return;
+    const interval = setInterval(() => {
+      setTimer((t) => {
+        if (t <= 1) {
+          setStep('email');
+          setCode('');
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   return (
@@ -57,7 +109,7 @@ export default function LoginPage() {
           <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#0a1931', margin: '0 0 8px 0' }}>
             Mandatresetters
           </h1>
-          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Admin Dashboard</p>
+          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Admin Dashboard Login</p>
         </div>
 
         {error && (
@@ -66,84 +118,131 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="admin@example.com"
-              required
+        {success && (
+          <div style={{ backgroundColor: '#efe', border: '1px solid #cfc', color: '#3c3', padding: '12px', borderRadius: '4px', marginBottom: '20px', fontSize: '14px' }}>
+            {success}
+          </div>
+        )}
+
+        {step === 'email' ? (
+          <form onSubmit={handleRequestCode}>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
+                Admin Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@mandatresetters.com"
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
               style={{
                 width: '100%',
-                padding: '10px 12px',
+                padding: '12px',
+                backgroundColor: '#0a1931',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? 'Sending Code...' : 'Request Verification Code'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyCode}>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
+                Verification Code
+              </label>
+              <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#666' }}>
+                A 6-digit code has been sent to <strong>{email}</strong>
+              </p>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                maxLength="6"
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '20px',
+                  textAlign: 'center',
+                  letterSpacing: '8px',
+                  border: '2px solid #ddd',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  fontWeight: 'bold',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '20px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
+              Code expires in: <strong style={{ color: timer < 120 ? '#c33' : '#333' }}>{formatTime(timer)}</strong>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || code.length !== 6}
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#0a1931',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: loading || code.length !== 6 ? 'not-allowed' : 'pointer',
+                opacity: loading || code.length !== 6 ? 0.6 : 1,
+              }}
+            >
+              {loading ? 'Verifying...' : 'Verify & Login'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setStep('email');
+                setCode('');
+                setEmail('');
+                setTimer(0);
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                marginTop: '10px',
+                backgroundColor: 'transparent',
+                color: '#0a1931',
                 border: '1px solid #ddd',
                 borderRadius: '4px',
                 fontSize: '14px',
-                boxSizing: 'border-box',
+                cursor: 'pointer',
               }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: '#0a1931',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '16px',
-              fontWeight: '500',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-
-        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0f8ff', borderRadius: '4px', fontSize: '13px', color: '#333' }}>
-          <p style={{ margin: '0 0 8px 0', fontWeight: '500' }}>Demo Credentials:</p>
-          <p style={{ margin: '4px 0' }}>
-            <strong>Admin:</strong>
-            <br />
-            admin@example.com / Admin@123456
-          </p>
-          <p style={{ margin: '4px 0' }}>
-            <strong>Demo User:</strong>
-            <br />
-            demo@example.com / Admin@123456
-          </p>
-        </div>
+            >
+              Use Different Email
+            </button>
+          </form>
+        )}
 
         <div style={{ marginTop: '20px', textAlign: 'center' }}>
           <Link href="/" style={{ color: '#0a1931', textDecoration: 'none', fontSize: '14px' }}>
